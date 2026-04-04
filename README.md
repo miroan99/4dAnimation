@@ -53,3 +53,5 @@ python -m app.main
 ```bash
 pytest
 ```
+## Project structur
+

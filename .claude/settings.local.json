@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/micha/PythonProjects/3dAnimation2/**)",
+      "Bash(done)",
+      "Bash(grep -E \"\\\\.py$|^d\")"
+    ]
+  }
+}

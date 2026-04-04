@@ -25,10 +25,15 @@ class Mesh:
         gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, gl.GL_FALSE, stride, gl.ctypes.c_void_p(0))
         gl.glEnableVertexAttribArray(0)
 
-        # layout(location=1): normal (3 floats) if available
+        # layout(location=1): normal or color (3 floats) if available
         if vertices.shape[1] >= 6:
             gl.glVertexAttribPointer(1, 3, gl.GL_FLOAT, gl.GL_FALSE, stride, gl.ctypes.c_void_p(12))
             gl.glEnableVertexAttribArray(1)
+
+        # layout(location=2): color (3 floats) if 9-float vertex (pos + normal + color)
+        if vertices.shape[1] >= 9:
+            gl.glVertexAttribPointer(2, 3, gl.GL_FLOAT, gl.GL_FALSE, stride, gl.ctypes.c_void_p(24))
+            gl.glEnableVertexAttribArray(2)
 
         gl.glBindVertexArray(0)
 

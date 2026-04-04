@@ -2,6 +2,7 @@
 
 in vec3 FragPos;
 in vec3 Normal;
+in vec3 VertColor;
 
 out vec4 FragColor;
 
@@ -13,7 +14,6 @@ struct Light {
 };
 
 uniform Light light;
-uniform vec3 objectColor;
 
 void main() {
     vec3 norm = normalize(Normal);
@@ -23,6 +23,6 @@ void main() {
     vec3 ambient = light.ambient * light.color;
     vec3 diffuse = light.diffuse * diff * light.color;
 
-    vec3 color = (ambient + diffuse) * objectColor;
+    vec3 color = (ambient + diffuse) * VertColor;
     FragColor = vec4(color, 1.0);
 }
