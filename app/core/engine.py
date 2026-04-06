@@ -28,20 +28,19 @@ class Engine:
         self.clock = pygame.time.Clock()
         self.running = False
 
-        # App state from rawdata.py
         self.rotation_mode = 0
         self.angle_x = 0.0
         self.angle_y = 0.0
         self.angle_z = 0.0
         self.shift_depth = 0.0
-        self.show_cube = True
+        self.selected_body = "cube"   # "cube" | "tesseract" | "hypersphere"
         self.show_cube_faces = True
         self.show_grid = True
         self.show_world_axes = True
         self.show_rotation_axes = True
-        self.show_tesseract = True
 
         self.rotation4d = Rotation4D()
+        self._camera_drag_active = False
 
         self.input = InputHandler()
         self.camera = Camera()
@@ -62,31 +61,26 @@ class Engine:
         if inp.scroll_y:
             self.shift_depth = max(-2.5, min(4.0, self.shift_depth - inp.scroll_y * 0.1))
 
-        if inp.right_clicked:
-            self.shift_depth = max(-2.5, self.shift_depth - 0.25)
-
         if inp.left_clicked:
             if self.menu.handle_click(inp.mouse_pos, self):
-                pass  # menu consumed the click
-            elif inp.shift_held:
-                self.shift_depth = min(4.0, self.shift_depth + 0.25)
+                self._camera_drag_active = False  # click consumed by menu
             else:
-                both_visible = self.show_cube and self.show_tesseract
-                if not both_visible:
-                    if self.show_cube:
-                        self.rotation_mode = (self.rotation_mode + 1) % len(config.MODE_NAMES)
-                    elif self.show_tesseract:
-                        n = len(config.ROTATION4D_MODE_NAMES)
-                        self.rotation4d.mode = (self.rotation4d.mode + 1) % n
+                self._camera_drag_active = True   # start orbital drag
+
+        if not inp.left_button_down:
+            self._camera_drag_active = False
+
+        if self._camera_drag_active and inp.drag_delta != (0, 0):
+            self.camera.orbit(*inp.drag_delta)
 
         self.shift_depth = max(-2.5, min(4.0, self.shift_depth))
         self.camera.shift_depth = self.shift_depth
 
     def reset_rotation(self) -> None:
-        """Reset visible object(s) to their default orientation (zero angles)."""
-        if self.show_cube:
+        """Reset visible object to its default orientation (zero angles)."""
+        if self.selected_body == "cube":
             self.angle_x = self.angle_y = self.angle_z = 0.0
-        if self.show_tesseract:
+        else:
             for plane in self.rotation4d.angles:
                 self.rotation4d.angles[plane] = 0.0
 
@@ -99,8 +93,11 @@ class Engine:
             self.angle_y = (self.angle_y + delta) % 360.0
         if "z" in axes:
             self.angle_z = (self.angle_z + delta) % 360.0
-        if self.show_tesseract:
-            self.rotation4d.update(dt)
+        if self.selected_body in ("tesseract", "hypersphere"):
+            if self.rotation4d.mode == config.CROSS_SECTION_MODE:
+                self.rotation4d.update_cross_section(dt)
+            else:
+                self.rotation4d.update(dt)
 
     def run(self):
         self.running = True
@@ -114,24 +111,40 @@ class Engine:
             self._handle_input()
             self._update_rotation(delta)
 
+            is_cs = (
+                self.selected_body in ("tesseract", "hypersphere")
+                and self.rotation4d.mode == config.CROSS_SECTION_MODE
+            )
+            cs_slice_w = self.rotation4d.cross_section.slice_w
+
             self.renderer.begin_frame()
             self.scene.draw(
                 self.renderer,
                 self.angle_x, self.angle_y, self.angle_z,
                 self.rotation_mode,
-                self.show_cube, self.show_cube_faces,
+                self.selected_body,
+                self.show_cube_faces,
                 self.show_grid, self.show_world_axes, self.show_rotation_axes,
-                self.show_tesseract, self.rotation4d.matrix,
+                self.rotation4d.matrix,
+                cross_section_mode=is_cs,
+                slice_w=cs_slice_w,
             )
             self.hud.draw(
                 self.rotation_mode, self.shift_depth, self.rotation4d,
-                self.show_cube, self.show_tesseract,
+                self.selected_body,
             )
             self.menu.draw(
                 self.show_grid, self.show_world_axes, self.show_rotation_axes,
-                self.show_tesseract, self.show_cube, self.show_cube_faces,
+                self.selected_body, self.show_cube_faces,
+                cross_section_mode=is_cs, slice_w=cs_slice_w,
+                rotation_mode=self.rotation_mode,
+                rotation4d_mode=self.rotation4d.mode,
             )
-            self.debug.draw(self.clock.get_fps())
+            self.debug.draw(
+                self.clock.get_fps(),
+                cross_section_mode=is_cs,
+                slice_w=cs_slice_w,
+            )
             self.renderer.end_frame()
 
         pygame.quit()

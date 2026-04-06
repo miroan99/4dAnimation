@@ -40,7 +40,11 @@ W_DISTANCE = 2.0
 # the others are essentially normal 3D rotations seen from a 4D perspective.
 ROTATION4D_MODE_NAMES = [
     "None", "XW", "YW", "ZW", "XW+YW", "XW+ZW", "YW+ZW", "XW+YW+ZW",
+    "Cross-Section",
 ]
+
+# Index of the cross-section mode in ROTATION4D_MODE_NAMES.
+CROSS_SECTION_MODE: int = 8
 
 ROTATION4D_MODE_PLANES: dict[int, frozenset] = {
     0: frozenset(),
@@ -51,6 +55,7 @@ ROTATION4D_MODE_PLANES: dict[int, frozenset] = {
     5: frozenset({"xw", "zw"}),
     6: frozenset({"yw", "zw"}),
     7: frozenset({"xw", "yw", "zw"}),
+    8: frozenset(),  # cross-section: no rotation planes animate
 }
 
 # Per-plane angular speeds (deg/s).  Coprime values keep the pattern from

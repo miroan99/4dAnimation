@@ -5,7 +5,10 @@
       "Bash(do echo:*)",
       "Read(//c/Users/micha/PythonProjects/3dAnimation2/**)",
       "Bash(done)",
-      "Bash(grep -E \"\\\\.py$|^d\")"
+      "Bash(grep -E \"\\\\.py$|^d\")",
+      "Bash(.venv\\\\Scripts\\\\python.exe:*)",
+      "Bash(.venv/Scripts/python.exe:*)",
+      "Bash(python:*)"
     ]
   }
 }
